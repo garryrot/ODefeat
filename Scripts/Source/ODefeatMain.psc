@@ -133,7 +133,7 @@ Function startup()
 
     InitBar(defeatBar)
     OUtils.RegisterForOUpdate(self)
-    ostim.RegisterForGameLoadEvent(self)
+    ;ostim.RegisterForGameLoadEvent(self)
 
     ;CustomScenes[1] = Game.GetFormFromFile(0x00000800, "odeftest.esp")
     ;sceneWeights[1] = 100
