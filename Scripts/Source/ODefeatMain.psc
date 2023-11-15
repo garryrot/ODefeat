@@ -527,21 +527,25 @@ Function runStruggleAnim(Actor attacker, actor victim, bool animate = true, bool
         if !posref
             Writelog("Posref not found, making new one")
             posref = GetBlankObject()
-        endif 
-        if (attacker == PlayerRef) ; Move scene to the location of the player.
-            (posRef).MoveTo(attacker)
-        else
-            (posRef).MoveTo(Victim)
         endif
 
-        MoveToNearestNavmeshLocation(posref)
+        Float posRefX
+        Float posRefY
+        Float posRefZ
+        if (attacker == PlayerRef) ; Move scene to the location of the player.
+            posRefX = attacker.X
+            posRefY = attacker.Y
+            posRefZ = attacker.Z
+        else
+            posRefX = Victim.X
+            posRefY = Victim.Y
+            posRefZ = Victim.Z
+        endif
 
 		float[] CenterLocation = new float[6] ; Get coords of posref exactly.
-
-        float[] temp = OSANative.GetCoords(posref)
-		CenterLocation[0] = temp[0]
-		CenterLocation[1] = temp[1]
-		CenterLocation[2] = temp[2] + 5 
+		CenterLocation[0] = posRefX
+		CenterLocation[1] = posRefY
+		CenterLocation[2] = posRefZ + 5
 		CenterLocation[3] = 21
 		CenterLocation[4] = 0
 		CenterLocation[5] = 240
