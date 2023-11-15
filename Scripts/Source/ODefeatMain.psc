@@ -758,12 +758,11 @@ bool tEscape
 
 Function PlayerDefenseFailedEvent(actor aggressor) 
     runStruggleAnim(aggressor, PlayerRef, false, false)
-
     ostim.FadeToBlack()
 
     if ChanceRoll(DefeatedSkipChance)
         PunishPlayer()
-        return 
+        return
     endif 
 
 
@@ -869,16 +868,26 @@ actor[] function GetNearbyActors()
     return GetActorsByProcessingLevel(0)
 endfunction
 
+; Ostim Standalone cannot store scene metadata while the thread is not yet running.
+; This causes the problem that 
+; 1) the scene does not exist yet when the tags are added
+; 2) the scene is already gone when its checked after defeat scene
+;
+; In legacy ostim, the metadata was just stored in a global array, hence this can just be
+; duplicatec to fix it (See old impl https://github.com/Sairion350/OStim/blob/main/Scripts/Source/OSexIntegrationMain.psc#L1280-L1282)
+string[] scenemetadata
+
 Function StartScene(actor Dom, actor Sub)
     ostim.AddSceneMetadata("odefeat")
 
     bool npcScene = false
 
     if dom == PlayerRef
-        ostim.AddSceneMetadata("odefeat_aggressor")
+        scenemetadata = PapyrusUtil.StringArray(0)
+        scenemetadata = PapyrusUtil.PushString(scenemetadata, "odefeat_aggressor")
     elseif sub == PlayerRef
-        ostim.AddSceneMetadata("odefeat_victim")
-
+        scenemetadata = PapyrusUtil.StringArray(0)
+        scenemetadata = PapyrusUtil.PushString(scenemetadata, "odefeat_victim")
         ostim.SkipEndingFadein = true
         PlayerRef.SetDontMove(false)
 
@@ -893,10 +902,11 @@ Function StartScene(actor Dom, actor Sub)
 
     if !npcScene
         Ostim.StartScene(dom, sub, Aggressive = True, AggressingActor = dom)
-
     else 
         ostim.GetUnusedSubthread().StartScene(dom, sub, isaggressive = true, aggressingActor = dom, LinkToMain = true)
     endif 
+    
+    WriteLog( "Metadata: " + scenemetadata)
 EndFunction
 
 ; ██╗  ██╗███████╗██╗   ██╗██████╗ ██╗███╗   ██╗██████╗ ███████╗
@@ -1187,15 +1197,15 @@ Float Function getActorAttackDifficulty(actor target)
 endFunction
 
 Event OStimEnd(string eventName, string strArg, float numArg, Form sender)
-    if ostim.HasSceneMetadata("odefeat_escaped")  
+    if scenemetadata.Find("odefeat_escaped") != -1
         EnableCombat(true, true) 
         game.FadeOutGame(false, true, 0.0, 0.001)
    endif 
 EndEvent 
 
 Event OStimTotalEnd(string eventName, string strArg, float numArg, Form sender)
-    if ostim.HasSceneMetadata("odefeat_victim") 
-        if !ostim.HasSceneMetadata("odefeat_escaped") 
+    if scenemetadata.Find("odefeat_victim") != -1
+        if scenemetadata.Find("odefeat_escaped") == -1
             PunishPlayer()
         endif 
         ostim.SkipEndingFadein = false
