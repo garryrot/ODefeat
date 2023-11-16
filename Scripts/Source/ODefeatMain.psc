@@ -533,10 +533,12 @@ Function runStruggleAnim(Actor attacker, actor victim, bool animate = true, bool
         Float posRefY
         Float posRefZ
         if (attacker == PlayerRef) ; Move scene to the location of the player.
-            posRefX = attacker.X
-            posRefY = attacker.Y
-            posRefZ = attacker.Z
+            MoveToNearestNavmeshLocation(PlayerRef)
+            posRefX = PlayerRef.X
+            posRefY = PlayerRef.Y
+            posRefZ = PlayerRef.Z
         else
+            MoveToNearestNavmeshLocation(Victim)
             posRefX = Victim.X
             posRefY = Victim.Y
             posRefZ = Victim.Z
